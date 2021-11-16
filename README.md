@@ -8,27 +8,17 @@ npm install @reduxjs/toolkit
 2.2. Функия configureStore()
 Обычно хранилище создается вызовом createStore(), в который передается корневой редюсер. Redux Toolkit содержит функцию configureStore(), которая оборачивает оригинальный createStore(), и настраивает некоторые полезные инструменты разработки как часть процесса создания хранилища.
 
-Документация configureStore()
-
-Заменим вызов createStore() на configureStore(), который ожидает один аргумент - объект с набором строго именованных свойств.
-
-// До
-import { createStore } from 'redux';
-
-const store = createStore(timer);
-
-// После
 import { combineReducers } from 'redux';
 import { configureStore } from '@reduxjs/toolkit';
 
 const rootReducer = combineReducers({
-  timer,
+timer,
 });
 
 const store = configureStore({
-  reducer: rootReducer,
+reducer: rootReducer,
 });
-Copy
+
 На первый вгляд практически одно и тоже, тем не менее, после рефакторинга, под капотом сразу были настроены инструменты разработчика (Redux DevTools) и некоторые другие полезные функции.
 
 Можно передать больше одного редюсера, и configureStore() сам создаст корневой редюсер. Для этого в свойство reducer передается объект.
@@ -36,11 +26,11 @@ Copy
 import { configureStore } from '@reduxjs/toolkit';
 
 const store = configureStore({
-  reducer: {
-    timer,
-  },
+reducer: {
+timer,
+},
 });
-Copy
+
 Теперь Redux-код таймера выглядит следующим образом.
 
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
@@ -51,38 +41,38 @@ const DECREMENT = 'timer/decrement';
 
 // Action creators
 function increment(value) {
-  return {
-    type: INCREMENT,
-    payload: value,
-  };
+return {
+type: INCREMENT,
+payload: value,
+};
 }
 
 function decrement(value) {
-  return {
-    type: DECREMENT,
-    payload: value,
-  };
+return {
+type: DECREMENT,
+payload: value,
+};
 }
 
 // Reducer
 function timer(state = 0, action) {
-  switch (action.type) {
-    case INCREMENT:
-      return state + action.payload;
-    case DECREMENT:
-      return state - action.payload;
-    default:
-      return state;
-  }
+switch (action.type) {
+case INCREMENT:
+return state + action.payload;
+case DECREMENT:
+return state - action.payload;
+default:
+return state;
+}
 }
 
 // Store
 const store = configureStore({
-  reducer: {
-    timer,
-  },
+reducer: {
+timer,
+},
 });
-Copy
+
 2.3. Функция createAction()
 Функция createAction() в качестве аргумента принимает строку описывающую тип действия и возвращает action creator.
 
@@ -92,10 +82,10 @@ Copy
 const INCREMENT = 'timer/increment';
 
 function increment(value) {
-  return {
-    type: INCREMENT,
-    payload: value,
-  };
+return {
+type: INCREMENT,
+payload: value,
+};
 }
 console.log(increment(5)); // {type: "timer/increment", payload: 5}
 
@@ -124,23 +114,24 @@ const decrement = createAction('timer/decrement');
 
 // Reducer
 function timer(state = 0, action) {
-  switch (action.type) {
-    case INCREMENT:
-      return state + action.payload;
+switch (action.type) {
+case INCREMENT:
+return state + action.payload;
 
     case DECREMENT:
       return state - action.payload;
 
     default:
       return state;
-  }
+
+}
 }
 
 // Store
 const store = configureStore({
-  reducer: {
-    timer,
-  },
+reducer: {
+timer,
+},
 });
 Copy
 2.4. Функция createReducer()
@@ -156,15 +147,15 @@ const increment = createAction('timer/increment');
 const decrement = createAction('timer/decrement');
 
 const timer = createReducer(0, {
-  [increment.type]: (state, action) => state + action.payload,
-  [decrement.type]: (state, action) => state - action.payload,
+[increment.type]: (state, action) => state + action.payload,
+[decrement.type]: (state, action) => state - action.payload,
 });
 Copy
 Так как синтаксис вычисляемых свойств объекта вызывает метод toString() указанной переменной, можно просто использовать имя функции без указания свойства type, ведь метод toString() наших action creators был переопределен так, чтобы возвращать тип дейсвтвия.
 
 const timer = createReducer(0, {
-  [increment]: (state, action) => state + action.payload,
-  [decrement]: (state, action) => state - action.payload,
+[increment]: (state, action) => state + action.payload,
+[decrement]: (state, action) => state - action.payload,
 });
 Copy
 Применим этот синтаксис к коду таймера.
@@ -177,18 +168,15 @@ const decrement = createAction('timer/decrement');
 
 // Reducer
 const timer = createReducer(0, {
-  [increment]: (state, action) => state + action.payload,
-  [decrement]: (state, action) => state - action.payload,
+[increment]: (state, action) => state + action.payload,
+[decrement]: (state, action) => state - action.payload,
 });
 
 // Store
 const store = configureStore({
-  reducer: {
-    timer,
-  },
+reducer: {
+timer,
+},
 });
-Copy
-3. Пример
+Copy 3. Пример
 В интерактивном редакторе можно посмотреть код и живую версию таймера.
-
-
