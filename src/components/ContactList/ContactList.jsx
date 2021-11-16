@@ -3,9 +3,8 @@ import PropTypes from 'prop-types';
 
 import s from './ContactList.module.css';
 import Contact from '../Contact';
-import { deleteContact } from '../../redux/phonebook/phonebook-actions';
 
-function ContactList({ contactsToContactList, onDeleteContact }) {
+function ContactList({ contactsToContactList }) {
   return (
     <ul className={s.contactList}>
       {contactsToContactList.map(({ id, name, number }) => {
@@ -14,7 +13,7 @@ function ContactList({ contactsToContactList, onDeleteContact }) {
             <Contact
               name={name}
               number={number}
-              onDelete={() => onDeleteContact(id)}>
+              id={id}>
             </Contact>
           </li>
         );
@@ -44,16 +43,9 @@ const mapStateToProps = ({ contacts: { items, filter } }) => ({
 //   };
 // };
 
-const mapDispatchToProps = dispatch => {
-  return {
-    onDeleteContact: id => dispatch(deleteContact(id)),
-  };
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(ContactList);
+export default connect(mapStateToProps)(ContactList);
 
 ContactList.propTypes = {
   contactsToContactList: PropTypes.arrayOf(
     PropTypes.shape()).isRequired,
-  onDeleteContact: PropTypes.func.isRequired,
 };
