@@ -1,70 +1,194 @@
-# Getting Started with Create React App
+1. Redux Toolkit
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+2.1. Установка
+Библиотека доступна как стандартный NPM-пакет.
 
-## Available Scripts
+npm install @reduxjs/toolkit
 
-In the project directory, you can run:
+2.2. Функия configureStore()
+Обычно хранилище создается вызовом createStore(), в который передается корневой редюсер. Redux Toolkit содержит функцию configureStore(), которая оборачивает оригинальный createStore(), и настраивает некоторые полезные инструменты разработки как часть процесса создания хранилища.
 
-### `yarn start`
+Документация configureStore()
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+Заменим вызов createStore() на configureStore(), который ожидает один аргумент - объект с набором строго именованных свойств.
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+// До
+import { createStore } from 'redux';
 
-### `yarn test`
+const store = createStore(timer);
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+// После
+import { combineReducers } from 'redux';
+import { configureStore } from '@reduxjs/toolkit';
 
-### `yarn build`
+const rootReducer = combineReducers({
+  timer,
+});
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+const store = configureStore({
+  reducer: rootReducer,
+});
+Copy
+На первый вгляд практически одно и тоже, тем не менее, после рефакторинга, под капотом сразу были настроены инструменты разработчика (Redux DevTools) и некоторые другие полезные функции.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Можно передать больше одного редюсера, и configureStore() сам создаст корневой редюсер. Для этого в свойство reducer передается объект.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+import { configureStore } from '@reduxjs/toolkit';
 
-### `yarn eject`
+const store = configureStore({
+  reducer: {
+    timer,
+  },
+});
+Copy
+Теперь Redux-код таймера выглядит следующим образом.
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+import { configureStore, combineReducers } from '@reduxjs/toolkit';
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+// Action types
+const INCREMENT = 'timer/increment';
+const DECREMENT = 'timer/decrement';
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+// Action creators
+function increment(value) {
+  return {
+    type: INCREMENT,
+    payload: value,
+  };
+}
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+function decrement(value) {
+  return {
+    type: DECREMENT,
+    payload: value,
+  };
+}
 
-## Learn More
+// Reducer
+function timer(state = 0, action) {
+  switch (action.type) {
+    case INCREMENT:
+      return state + action.payload;
+    case DECREMENT:
+      return state - action.payload;
+    default:
+      return state;
+  }
+}
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+// Store
+const store = configureStore({
+  reducer: {
+    timer,
+  },
+});
+Copy
+2.3. Функция createAction()
+Функция createAction() в качестве аргумента принимает строку описывающую тип действия и возвращает action creator.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Документация createAction()
 
-### Code Splitting
+// До
+const INCREMENT = 'timer/increment';
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+function increment(value) {
+  return {
+    type: INCREMENT,
+    payload: value,
+  };
+}
+console.log(increment(5)); // {type: "timer/increment", payload: 5}
 
-### Analyzing the Bundle Size
+// После
+import { createAction } from '@reduxjs/toolkit';
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+const increment = createAction('timer/increment');
+console.log(increment(5)); // {type: "timer/increment", payload: 5}
+Copy
+А где взять тип действия, например для использования внутри редюсера? Есть два способа.
 
-### Making a Progressive Web App
+Метод toString() функции increment был переопределен и возвращает строку типа действия.
+Значение типа действия можно получить обратившись к свойству type функции increment
+const increment = createAction('INCREMENT');
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+console.log(increment.toString()); // "timer/increment"
+console.log(increment.type); // "timer/increment"
+Copy
+Продолжим рефакторить Redux-код таймера. Использование createAction() избавит нас от нескольких строк кода.
 
-### Advanced Configuration
+import { configureStore, createAction } from '@reduxjs/toolkit';
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+// Action creators
+const increment = createAction('timer/increment');
+const decrement = createAction('timer/decrement');
 
-### Deployment
+// Reducer
+function timer(state = 0, action) {
+  switch (action.type) {
+    case INCREMENT:
+      return state + action.payload;
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+    case DECREMENT:
+      return state - action.payload;
 
-### `yarn build` fails to minify
+    default:
+      return state;
+  }
+}
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+// Store
+const store = configureStore({
+  reducer: {
+    timer,
+  },
+});
+Copy
+2.4. Функция createReducer()
+Наиболее распространенным подходом создания редюсера является проверка свойства action.type внутри switch и выполнение определенной логики для каждого типа действия. К тому же редюсер определяет начальное значение состояния и возвращает полученное состояние, если он не должен обрабатывать дейтсвие такого типа.
+
+Документация createReducer()
+
+Используя функцию createReducer() можно создавать редюсеры передав объект свойств специального формата, где каждый ключ это тип действия, а значение - это редюсер для этого типа.
+
+import { createReducer } from '@reduxjs/toolkit';
+
+const increment = createAction('timer/increment');
+const decrement = createAction('timer/decrement');
+
+const timer = createReducer(0, {
+  [increment.type]: (state, action) => state + action.payload,
+  [decrement.type]: (state, action) => state - action.payload,
+});
+Copy
+Так как синтаксис вычисляемых свойств объекта вызывает метод toString() указанной переменной, можно просто использовать имя функции без указания свойства type, ведь метод toString() наших action creators был переопределен так, чтобы возвращать тип дейсвтвия.
+
+const timer = createReducer(0, {
+  [increment]: (state, action) => state + action.payload,
+  [decrement]: (state, action) => state - action.payload,
+});
+Copy
+Применим этот синтаксис к коду таймера.
+
+import { configureStore, createAction, createReducer } from '@reduxjs/toolkit';
+
+// Action creators
+const increment = createAction('timer/increment');
+const decrement = createAction('timer/decrement');
+
+// Reducer
+const timer = createReducer(0, {
+  [increment]: (state, action) => state + action.payload,
+  [decrement]: (state, action) => state - action.payload,
+});
+
+// Store
+const store = configureStore({
+  reducer: {
+    timer,
+  },
+});
+Copy
+3. Пример
+В интерактивном редакторе можно посмотреть код и живую версию таймера.
+
+
